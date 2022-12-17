@@ -1,0 +1,48 @@
+1. Устанавливаем lxc
+apt install lxc lxctl
+2. Настраиваем запуск, проверяем активность
+systemctl enable lxc
+systemctl is-enabled lxc
+3. Проверяем наличие контейнеров
+lxc-ls
+4.Создаем контейнер, для второго повторяем шаги
+lxc-create -n container1 -t download
+ubuntu
+bionic
+amd64
+5. Проверяем созданный контейнер
+lxc-info -n container1
+6. Настраиваем сетевой мост
+cd /var/lib/lxc
+cd container1/
+nano config
+lxc.net.0.type = veth
+lxc.net.0.flags = up
+lxc.net.0.link = wlan0
+7. Создаем пользователя в lxc
+chroot rootfs/
+passwd root
+8. Запускаем и проверяем контейнер
+lxc-start -n container1
+lxc-info -n container1
+9. Заходим в консоль контейнера, устанавливаем необходимые программы
+lxc-console -n container1 -t 0
+root
+apt install nano net-tools openssh-server
+10. Настраиваем подключение по ssh
+nano /etc/ssh/sshd_config
+PermitRootLogin yes
+11. Запускаем ssh
+systemctl enable sshd
+12. Допустим, адреса контейнеров 192.168.122.218 и 192.168.122.219, тогда для настройки подключения SSH без пароля делаем следующее
+Заходим по SSH на первый контейнер
+ssh -l root 192.168.122.218
+13. Генерируем Key Pair
+ssh-keygen -t rsa -b 2048 -v
+вводим имя файла, сгенерированный файл без разрешения переименовываем в cert.pem
+14. Загружаем сертификат на второй контейнер
+ssh-copy-id -i ~/cert.pub root@192.168.122.219
+15. Подключаемся, используя сгенерированный сертификат
+ssh -i ~/cert.pem root@192.168.122.219
+При первом подключении может потребоваться подтверждение Key Pair.
+
